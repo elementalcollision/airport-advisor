@@ -1,7 +1,7 @@
 "use client";
 
 import { AirportConfig, WaitTimeResult, UserInputs } from "@/lib/types";
-import type { WeatherData, DelayData, SourceStatus } from "@/lib/data-sources/types";
+import type { WeatherData, DelayData, SourceStatus, WaitCheckpoint } from "@/lib/data-sources/types";
 
 interface ResultPanelProps {
   result: WaitTimeResult;
@@ -12,6 +12,8 @@ interface ResultPanelProps {
   weather: WeatherData | null;
   delays: DelayData | null;
   sourceStatuses: SourceStatus[];
+  liveCheckpoints: WaitCheckpoint[];
+  onRefresh: () => void;
 }
 
 function formatTime(date: Date): string {
@@ -52,6 +54,8 @@ export default function ResultPanel({
   weather,
   delays,
   sourceStatuses,
+  liveCheckpoints,
+  onRefresh,
 }: ResultPanelProps) {
   const riskColors = {
     LOW: "bg-accent-green",
@@ -218,6 +222,33 @@ export default function ResultPanel({
         </div>
       )}
 
+      {/* Per-Checkpoint Wait Times */}
+      {liveCheckpoints.length > 0 && liveCheckpoints.some((cp) => cp.waitMinutes != null) && (
+        <div className="bg-bg-card border border-border rounded-xl p-5">
+          <div className="text-[10px] font-semibold tracking-[0.15em] text-text-muted uppercase mb-3">
+            Checkpoint Wait Times
+            <span className="text-accent-green ml-2 normal-case tracking-normal">● live</span>
+          </div>
+          <div className="space-y-2">
+            {liveCheckpoints
+              .filter((cp) => cp.waitMinutes != null)
+              .map((cp, i) => (
+                <div key={i} className="flex items-center justify-between text-sm">
+                  <span className="text-text-secondary">{cp.name}</span>
+                  <div className="flex items-center gap-3 font-mono">
+                    <span className="text-text-primary">{cp.waitMinutes} min</span>
+                    {cp.preCheckMinutes != null && (
+                      <span className="text-accent-green text-xs">
+                        PreCheck {cp.preCheckMinutes} min
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
       {/* Time Breakdown */}
       <div className="bg-bg-card border border-border rounded-xl p-5">
         <div className="text-[10px] font-semibold tracking-[0.15em] text-text-muted uppercase mb-3">
@@ -298,8 +329,16 @@ export default function ResultPanel({
 
       {/* Sources & Data Refresh */}
       <div className="border-t border-border pt-4">
-        <div className="text-[10px] font-semibold tracking-[0.15em] text-text-muted uppercase mb-2">
-          Sources & Data Refresh
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[10px] font-semibold tracking-[0.15em] text-text-muted uppercase">
+            Sources & Data Refresh
+          </div>
+          <button
+            onClick={onRefresh}
+            className="text-[10px] text-text-muted hover:text-text-primary border border-border hover:border-text-muted rounded px-2 py-0.5 transition-colors"
+          >
+            ↻ Refresh
+          </button>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-muted">
           {config.dataSources.map((source) => (

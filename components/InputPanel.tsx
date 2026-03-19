@@ -10,6 +10,7 @@ interface InputPanelProps {
   departureMinute: number;
   credentialId: string;
   additionalFactors: string[];
+  selectedTerminal: string | undefined;
   activeEvents: SeasonalEvent[];
   onAirportChange: (code: AirportCode) => void;
   onDateChange: (date: string) => void;
@@ -17,6 +18,7 @@ interface InputPanelProps {
   onMinuteChange: (minute: number) => void;
   onCredentialChange: (id: string) => void;
   onFactorToggle: (id: string) => void;
+  onTerminalChange: (terminal: string | undefined) => void;
 }
 
 export default function InputPanel({
@@ -27,6 +29,7 @@ export default function InputPanel({
   departureMinute,
   credentialId,
   additionalFactors,
+  selectedTerminal,
   activeEvents,
   onAirportChange,
   onDateChange,
@@ -34,6 +37,7 @@ export default function InputPanel({
   onMinuteChange,
   onCredentialChange,
   onFactorToggle,
+  onTerminalChange,
 }: InputPanelProps) {
   const formatTime = (h: number) => {
     const ampm = h >= 12 ? "PM" : "AM";
@@ -142,6 +146,49 @@ export default function InputPanel({
           ))}
         </div>
       </div>
+
+      {/* Terminal Selection */}
+      {config.terminals.length > 1 && (
+        <div>
+          <label className="block text-[10px] font-semibold tracking-[0.15em] text-text-muted uppercase mb-2">
+            Terminal
+          </label>
+          <div className="space-y-1.5">
+            <button
+              onClick={() => onTerminalChange(undefined)}
+              className={`w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors text-xs ${
+                !selectedTerminal
+                  ? "border-accent-orange/50 bg-accent-orange/10 text-text-primary"
+                  : "border-border bg-bg-input text-text-secondary hover:border-text-muted"
+              }`}
+            >
+              <span className="font-medium">All Terminals</span>
+              {!selectedTerminal && <span className="ml-auto text-accent-orange text-xs">✓</span>}
+            </button>
+            {config.terminals.map((terminal) => (
+              <button
+                key={terminal.id}
+                onClick={() => onTerminalChange(terminal.id)}
+                className={`w-full flex items-center gap-3 rounded-lg border px-3 py-2 text-left transition-colors ${
+                  selectedTerminal === terminal.id
+                    ? "border-accent-orange/50 bg-accent-orange/10 text-text-primary"
+                    : "border-border bg-bg-input text-text-secondary hover:border-text-muted"
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium">{terminal.name}</div>
+                  <div className="text-[10px] text-text-muted truncate">
+                    {terminal.airlines.join(", ")}
+                  </div>
+                </div>
+                {selectedTerminal === terminal.id && (
+                  <span className="ml-auto text-accent-orange text-xs shrink-0">✓</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Additional Factors */}
       <div>

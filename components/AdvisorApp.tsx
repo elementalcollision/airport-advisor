@@ -134,12 +134,14 @@ export default function AdvisorApp() {
           departureMinute={inputs.departureMinute}
           credentialId={inputs.credentialId}
           additionalFactors={inputs.additionalFactors}
+          selectedTerminal={inputs.terminal}
           activeEvents={result.activeEvents}
           onAirportChange={handleAirportChange}
           onDateChange={(date) => setInputs((prev) => ({ ...prev, departureDate: date }))}
           onHourChange={(hour) => setInputs((prev) => ({ ...prev, departureHour: hour }))}
           onMinuteChange={(minute) => setInputs((prev) => ({ ...prev, departureMinute: minute }))}
           onCredentialChange={(id) => setInputs((prev) => ({ ...prev, credentialId: id }))}
+          onTerminalChange={(terminal) => setInputs((prev) => ({ ...prev, terminal }))}
           onFactorToggle={(id) =>
             setInputs((prev) => ({
               ...prev,
@@ -160,6 +162,8 @@ export default function AdvisorApp() {
             weather={aggregatedData?.weather ?? null}
             delays={aggregatedData?.delays ?? null}
             sourceStatuses={aggregatedData?.sources ?? []}
+            liveCheckpoints={aggregatedData?.waitTime.checkpoints ?? []}
+            onRefresh={fetchData}
           />
         </div>
       </div>
