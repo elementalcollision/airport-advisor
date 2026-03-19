@@ -129,7 +129,19 @@ public/
   icons/                        # PWA icons
 ```
 
+## Documentation
+
+Full documentation is available in the **[Wiki](https://github.com/elementalcollision/airport-advisor/wiki)**:
+
+- **[Architecture Overview](https://github.com/elementalcollision/airport-advisor/wiki/Architecture-Overview)** &mdash; Data flow, aggregation, caching, and design decisions
+- **[Adding a New Airport](https://github.com/elementalcollision/airport-advisor/wiki/Adding-a-New-Airport)** &mdash; Step-by-step guide with full example
+- **[Adding a Data Source Provider](https://github.com/elementalcollision/airport-advisor/wiki/Adding-a-Data-Source-Provider)** &mdash; How to integrate a new API or data feed
+- **[Configuration Reference](https://github.com/elementalcollision/airport-advisor/wiki/Configuration-Reference)** &mdash; Complete type and interface reference
+- **[Deployment](https://github.com/elementalcollision/airport-advisor/wiki/Deployment)** &mdash; Vercel, self-hosting, and caching strategy
+
 ## Roadmap
+
+See the full **[Roadmap](https://github.com/elementalcollision/airport-advisor/wiki/Roadmap)** in the wiki.
 
 - [ ] **QSensor integration** &mdash; live checkpoint sensor data
 - [ ] **Flight number lookup** &mdash; auto-fill time/terminal from FlightLabs or FlightAware
