@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f1724"/>
+      <stop offset="100%" style="stop-color:#1a2636"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#e8750a"/>
+      <stop offset="100%" style="stop-color:#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8750a;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#e8750a;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="300" fill="url(#bg)"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.04" stroke="#e8750a" stroke-width="0.5" fill="none">
+    <line x1="0" y1="60" x2="1200" y2="60"/>
+    <line x1="0" y1="120" x2="1200" y2="120"/>
+    <line x1="0" y1="180" x2="1200" y2="180"/>
+    <line x1="0" y1="240" x2="1200" y2="240"/>
+    <line x1="200" y1="0" x2="200" y2="300"/>
+    <line x1="400" y1="0" x2="400" y2="300"/>
+    <line x1="600" y1="0" x2="600" y2="300"/>
+    <line x1="800" y1="0" x2="800" y2="300"/>
+    <line x1="1000" y1="0" x2="1000" y2="300"/>
+  </g>
+
+  <!-- Top accent line -->
+  <rect x="0" y="0" width="1200" height="3" fill="url(#accent)"/>
+
+  <!-- Glow behind plane -->
+  <ellipse cx="170" cy="150" rx="120" ry="100" fill="url(#glow)"/>
+
+  <!-- Airplane icon -->
+  <g transform="translate(170,140) rotate(-15) scale(1.3)">
+    <path d="M-8,-55 L8,-55 L12,-10 L55,18 L55,32 L12,14 L8,50 L22,62 L22,72 L0,62 L-22,72 L-22,62 L-8,50 L-12,14 L-55,32 L-55,18 L-12,-10 Z" fill="#e8750a"/>
+  </g>
+
+  <!-- Clock arc around plane -->
+  <circle cx="170" cy="140" r="90" fill="none" stroke="#e8750a" stroke-width="2" stroke-dasharray="120 446" stroke-linecap="round" transform="rotate(-90 170 140)" opacity="0.25"/>
+  <circle cx="170" cy="140" r="80" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="80 423" stroke-linecap="round" transform="rotate(60 170 140)" opacity="0.15"/>
+
+  <!-- Title text -->
+  <text x="320" y="115" font-family="'SF Pro Display', 'Inter', -apple-system, sans-serif" font-weight="800" font-size="52" fill="#e7e9ea" letter-spacing="-1">
+    Airport Advisor
+  </text>
+
+  <!-- Subtitle -->
+  <text x="320" y="155" font-family="'SF Pro Display', 'Inter', -apple-system, sans-serif" font-weight="400" font-size="20" fill="#71767b" letter-spacing="0.5">
+    Security Wait Time Estimator
+  </text>
+
+  <!-- Airport codes -->
+  <g transform="translate(320, 195)">
+    <rect x="0" y="0" width="60" height="28" rx="6" fill="#e8750a" opacity="0.15"/>
+    <text x="30" y="19" text-anchor="middle" font-family="'SF Mono', 'Fira Code', monospace" font-weight="700" font-size="14" fill="#e8750a" letter-spacing="2">BOS</text>
+
+    <rect x="72" y="0" width="60" height="28" rx="6" fill="#e8750a" opacity="0.15"/>
+    <text x="102" y="19" text-anchor="middle" font-family="'SF Mono', 'Fira Code', monospace" font-weight="700" font-size="14" fill="#e8750a" letter-spacing="2">DUB</text>
+
+    <!-- Separator dot -->
+    <circle cx="152" cy="14" r="3" fill="#71767b" opacity="0.4"/>
+
+    <!-- Tech badges -->
+    <text x="172" y="19" font-family="'SF Pro Display', 'Inter', -apple-system, sans-serif" font-weight="500" font-size="13" fill="#71767b">
+      Next.js 16  ·  React 19  ·  Tailwind 4  ·  Vercel
+    </text>
+  </g>
+
+  <!-- Right side: stylized data display -->
+  <g transform="translate(900, 70)" opacity="0.6">
+    <!-- Simulated wait time card -->
+    <rect x="0" y="0" width="240" height="160" rx="12" fill="#1e2d3d" stroke="#2a3a4a" stroke-width="1"/>
+
+    <text x="20" y="28" font-family="'SF Pro Display', 'Inter', -apple-system, sans-serif" font-weight="600" font-size="9" fill="#e8750a" letter-spacing="1.5" text-transform="uppercase">RECOMMENDED ARRIVAL</text>
+
+    <text x="20" y="72" font-family="'SF Mono', 'Fira Code', monospace" font-weight="700" font-size="40" fill="#e7e9ea">6:18</text>
+    <text x="148" y="72" font-family="'SF Mono', 'Fira Code', monospace" font-weight="400" font-size="20" fill="#71767b">AM</text>
+
+    <text x="20" y="92" font-family="'SF Pro Display', 'Inter', -apple-system, sans-serif" font-weight="400" font-size="11" fill="#71767b">for your 8:00 AM departure</text>
+
+    <!-- Mini stats -->
+    <line x1="20" y1="108" x2="220" y2="108" stroke="#2a3a4a" stroke-width="1"/>
+
+    <text x="20" y="128" font-family="'SF Pro Display', 'Inter', -apple-system, sans-serif" font-weight="400" font-size="9" fill="#71767b" letter-spacing="0.5">SECURITY WAIT</text>
+    <text x="20" y="148" font-family="'SF Mono', 'Fira Code', monospace" font-weight="700" font-size="16" fill="#f59e0b">48-67<tspan font-size="10" fill="#71767b"> min</tspan></text>
+
+    <text x="130" y="128" font-family="'SF Pro Display', 'Inter', -apple-system, sans-serif" font-weight="400" font-size="9" fill="#71767b" letter-spacing="0.5">TOTAL NEEDED</text>
+    <text x="130" y="148" font-family="'SF Mono', 'Fira Code', monospace" font-weight="700" font-size="16" fill="#f59e0b">78-97<tspan font-size="10" fill="#71767b"> min</tspan></text>
+  </g>
+
+  <!-- Bottom accent line -->
+  <rect x="0" y="297" width="1200" height="3" fill="url(#accent)"/>
+</svg>
