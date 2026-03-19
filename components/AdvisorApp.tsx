@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { AirportCode, UserInputs, WaitTimeResult, LiveWaitData } from "@/lib/types";
+import { AirportCode, UserInputs, WaitTimeResult } from "@/lib/types";
+import type { AggregatedAirportData } from "@/lib/data-sources/types";
 import { airports } from "@/lib/airports";
 import { calculateWaitTime } from "@/lib/calculator";
 import InputPanel from "./InputPanel";
@@ -27,21 +28,24 @@ export default function AdvisorApp() {
     additionalFactors: [],
   });
 
-  const [liveData, setLiveData] = useState<LiveWaitData | null>(null);
+  const [aggregatedData, setAggregatedData] = useState<AggregatedAirportData | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [isLiveData, setIsLiveData] = useState(false);
 
   const config = airports[inputs.airport];
 
-  // Fetch live data
-  const fetchLiveData = useCallback(async () => {
+  // Fetch aggregated data from unified endpoint
+  const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(`/api/${inputs.airport.toLowerCase()}`);
+      const res = await fetch(`/api/airport/${inputs.airport}`);
       if (res.ok) {
-        const data: LiveWaitData = await res.json();
-        setLiveData(data);
+        const data: AggregatedAirportData = await res.json();
+        setAggregatedData(data);
         setLastRefresh(new Date());
-        setIsLiveData(true);
+        // Live if we got wait time data with any confidence
+        setIsLiveData(
+          data.waitTime.estimateMinutes != null && data.waitTime.confidence > 0,
+        );
       } else {
         setIsLiveData(false);
       }
@@ -50,14 +54,14 @@ export default function AdvisorApp() {
     }
   }, [inputs.airport]);
 
-  // Fetch on mount and airport change
+  // Fetch on mount and airport change, refresh every 5 minutes
   useEffect(() => {
-    fetchLiveData();
-    const interval = setInterval(fetchLiveData, 5 * 60 * 1000); // refresh every 5 minutes
+    fetchData();
+    const interval = setInterval(fetchData, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [fetchLiveData]);
+  }, [fetchData]);
 
-  // Reset credential when switching airports (different options)
+  // Reset credential when switching airports
   const handleAirportChange = (code: AirportCode) => {
     setInputs((prev) => ({
       ...prev,
@@ -65,20 +69,21 @@ export default function AdvisorApp() {
       credentialId: "standard",
       additionalFactors: [],
     }));
-    setLiveData(null);
+    setAggregatedData(null);
     setIsLiveData(false);
   };
 
-  // Calculate result
-  const avgLiveWait =
-    liveData?.checkpoints
-      .filter((cp) => cp.waitMinutes != null)
-      .reduce((sum, cp, _, arr) => sum + (cp.waitMinutes ?? 0) / arr.length, 0) ?? null;
+  // Calculate result using live wait estimate if available
+  const liveWaitMinutes = isLiveData
+    ? aggregatedData?.waitTime.estimateMinutes ?? null
+    : null;
 
   const result: WaitTimeResult = calculateWaitTime(
     inputs,
     config,
-    isLiveData ? avgLiveWait : null,
+    liveWaitMinutes,
+    aggregatedData?.weather ?? undefined,
+    aggregatedData?.delays ?? undefined,
   );
 
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -152,6 +157,9 @@ export default function AdvisorApp() {
             inputs={inputs}
             lastRefresh={lastRefresh}
             isLiveData={isLiveData}
+            weather={aggregatedData?.weather ?? null}
+            delays={aggregatedData?.delays ?? null}
+            sourceStatuses={aggregatedData?.sources ?? []}
           />
         </div>
       </div>

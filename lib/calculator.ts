@@ -1,4 +1,5 @@
 import { AirportConfig, Advisory, SeasonalEvent, UserInputs, WaitTimeResult } from "./types";
+import type { WeatherData, DelayData } from "./data-sources/types";
 import { dubPreclearance } from "./airports/dub";
 
 function isDateInRange(
@@ -53,6 +54,8 @@ export function calculateWaitTime(
   inputs: UserInputs,
   config: AirportConfig,
   liveWaitMinutes?: number | null,
+  weather?: WeatherData,
+  delays?: DelayData,
 ): WaitTimeResult {
   const { departureHour, departureMinute, credentialId, additionalFactors, departureDate } = inputs;
 
@@ -113,8 +116,28 @@ export function calculateWaitTime(
     otherBuffers += preclearanceMinutes;
   }
 
-  const totalLow = securityWaitLow + otherBuffers;
-  const totalHigh = securityWaitHigh + otherBuffers;
+  // Weather impact: bad conditions cause flight delays → crowded terminals
+  let weatherMultiplier = 1.0;
+  if (weather) {
+    if (weather.conditions === "LIFR") {
+      weatherMultiplier = 1.2;
+    } else if (weather.conditions === "IFR") {
+      weatherMultiplier = 1.15;
+    } else if (weather.conditions === "MVFR" && weather.hasPrecipitation) {
+      weatherMultiplier = 1.1;
+    }
+    // High winds also cause delays
+    if (weather.windSpeedKt >= 30 || (weather.windGustKt ?? 0) >= 40) {
+      weatherMultiplier = Math.max(weatherMultiplier, 1.15);
+    }
+  }
+
+  // Apply weather multiplier to security wait (not to buffers)
+  const adjustedSecurityWaitLow = Math.round(securityWaitLow * weatherMultiplier);
+  const adjustedSecurityWaitHigh = Math.round(securityWaitHigh * weatherMultiplier);
+
+  const totalLow = adjustedSecurityWaitLow + otherBuffers;
+  const totalHigh = adjustedSecurityWaitHigh + otherBuffers;
 
   // Recommended arrival (using high estimate for safety)
   const departureTime = new Date(departureDate + "T00:00:00");
@@ -123,9 +146,10 @@ export function calculateWaitTime(
 
   // Risk level
   let riskLevel: "LOW" | "MEDIUM" | "HIGH";
-  if (securityWaitHigh >= 45 || seasonalMultiplier >= 1.4) {
+  const hasGroundStop = delays?.groundStop ?? false;
+  if (adjustedSecurityWaitHigh >= 45 || seasonalMultiplier >= 1.4 || hasGroundStop) {
     riskLevel = "HIGH";
-  } else if (securityWaitHigh >= 25 || seasonalMultiplier >= 1.2) {
+  } else if (adjustedSecurityWaitHigh >= 25 || seasonalMultiplier >= 1.2 || (delays?.groundDelay ?? false)) {
     riskLevel = "MEDIUM";
   } else {
     riskLevel = "LOW";
@@ -141,6 +165,52 @@ export function calculateWaitTime(
     advisories.push({ type: "warning", text: `${event.badge ?? "📅"} ${event.name}: ${event.description}` });
   }
 
+  // Weather advisories
+  if (weather) {
+    if (weatherMultiplier > 1.0) {
+      const weatherDesc =
+        weather.conditions === "LIFR"
+          ? "Very low visibility/ceiling"
+          : weather.conditions === "IFR"
+            ? "Low visibility/ceiling (IFR conditions)"
+            : weather.hasPrecipitation
+              ? `${weather.precipitationType ? weather.precipitationType.charAt(0).toUpperCase() + weather.precipitationType.slice(1) : "Precipitation"} with reduced visibility`
+              : "Gusty winds";
+      advisories.push({
+        type: "warning",
+        text: `${weatherDesc} — weather may cause flight delays, increasing terminal congestion.`,
+      });
+    }
+  }
+
+  // FAA delay advisories
+  if (delays) {
+    if (delays.groundStop) {
+      advisories.push({
+        type: "warning",
+        text: `Ground Stop in effect${delays.reason ? ` (${delays.reason})` : ""}. Flights are not departing — check with your airline before heading to the airport.`,
+      });
+    }
+    if (delays.groundDelay) {
+      advisories.push({
+        type: "warning",
+        text: `Ground Delay Program active${delays.reason ? ` (${delays.reason})` : ""}. Expect departure delays.`,
+      });
+    }
+    if (delays.arrivalDelay) {
+      advisories.push({
+        type: "info",
+        text: `Arrival delays: ${delays.arrivalDelay}. Inbound delays may affect gate availability.`,
+      });
+    }
+    if (delays.departureDelay) {
+      advisories.push({
+        type: "info",
+        text: `Departure delays: ${delays.departureDelay}.`,
+      });
+    }
+  }
+
   // Add preclearance advisories
   if (config.code === "DUB" && additionalFactors.includes("us_bound")) {
     advisories.push({
@@ -153,8 +223,8 @@ export function calculateWaitTime(
   advisories.push(...config.advisories);
 
   return {
-    securityWaitLow,
-    securityWaitHigh,
+    securityWaitLow: adjustedSecurityWaitLow,
+    securityWaitHigh: adjustedSecurityWaitHigh,
     otherBuffers,
     totalLow,
     totalHigh,

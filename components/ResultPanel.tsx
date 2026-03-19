@@ -1,6 +1,7 @@
 "use client";
 
 import { AirportConfig, WaitTimeResult, UserInputs } from "@/lib/types";
+import type { WeatherData, DelayData, SourceStatus } from "@/lib/data-sources/types";
 
 interface ResultPanelProps {
   result: WaitTimeResult;
@@ -8,6 +9,9 @@ interface ResultPanelProps {
   inputs: UserInputs;
   lastRefresh: Date | null;
   isLiveData: boolean;
+  weather: WeatherData | null;
+  delays: DelayData | null;
+  sourceStatuses: SourceStatus[];
 }
 
 function formatTime(date: Date): string {
@@ -26,12 +30,28 @@ function formatTimeCompact(date: Date): string {
   return `${hour}:${String(m).padStart(2, "0")}  ${ampm}`;
 }
 
+function windDirectionLabel(deg: number | null): string {
+  if (deg == null) return "Variable";
+  const dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
+const flightCategoryColors: Record<string, string> = {
+  VFR: "bg-accent-green text-bg-primary",
+  MVFR: "bg-blue-500 text-white",
+  IFR: "bg-accent-red text-white",
+  LIFR: "bg-fuchsia-600 text-white",
+};
+
 export default function ResultPanel({
   result,
   config,
   inputs,
   lastRefresh,
   isLiveData,
+  weather,
+  delays,
+  sourceStatuses,
 }: ResultPanelProps) {
   const riskColors = {
     LOW: "bg-accent-green",
@@ -43,13 +63,32 @@ export default function ResultPanel({
   const credentialLabel = credential?.description ?? "Standard";
 
   const departureDate = new Date(inputs.departureDate + "T00:00:00");
-  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   const preclearanceActive = config.code === "DUB" && inputs.additionalFactors.includes("us_bound");
 
   return (
     <div className="flex-1 p-5 lg:p-6 space-y-5">
+      {/* FAA Delay Banner */}
+      {delays && (delays.groundStop || delays.groundDelay) && (
+        <div className={`rounded-xl p-4 border ${delays.groundStop ? "bg-accent-red/10 border-accent-red/30" : "bg-accent-orange/10 border-accent-orange/30"}`}>
+          <div className="flex items-center gap-2">
+            <span className={`text-lg ${delays.groundStop ? "text-accent-red" : "text-accent-orange"}`}>
+              {delays.groundStop ? "⚠" : "●"}
+            </span>
+            <div>
+              <div className={`text-sm font-bold ${delays.groundStop ? "text-accent-red" : "text-accent-orange"}`}>
+                {delays.groundStop ? "GROUND STOP" : "GROUND DELAY PROGRAM"}
+                {delays.program && <span className="font-mono ml-2 text-xs opacity-75">({delays.program})</span>}
+              </div>
+              {delays.reason && (
+                <div className="text-xs text-text-secondary mt-0.5">Reason: {delays.reason}</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Recommended Arrival Hero */}
       <div className="bg-bg-card border border-border rounded-xl p-6">
         <div className="flex items-start justify-between">
@@ -125,6 +164,59 @@ export default function ResultPanel({
           </div>
         </div>
       </div>
+
+      {/* Weather Conditions */}
+      {weather && (
+        <div className="bg-bg-card border border-border rounded-xl p-5">
+          <div className="text-[10px] font-semibold tracking-[0.15em] text-text-muted uppercase mb-3">
+            Current Conditions
+          </div>
+          <div className="flex items-center gap-3 mb-3">
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${flightCategoryColors[weather.conditions] ?? "bg-text-muted text-bg-primary"}`}>
+              {weather.conditions}
+            </span>
+            {weather.hasPrecipitation && weather.precipitationType && (
+              <span className="text-xs text-accent-orange">
+                {weather.precipitationType === "thunderstorm" ? "Thunderstorms" :
+                 weather.precipitationType === "snow" ? "Snow" :
+                 weather.precipitationType === "rain" ? "Rain" :
+                 weather.precipitationType === "freezing" ? "Freezing Precip" :
+                 weather.precipitationType}
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <div>
+              <div className="text-[10px] text-text-muted uppercase">Wind</div>
+              <div className="text-text-primary font-mono">
+                {windDirectionLabel(weather.windDirection)} {weather.windSpeedKt}kt
+                {weather.windGustKt != null && <span className="text-accent-orange"> G{weather.windGustKt}kt</span>}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-text-muted uppercase">Visibility</div>
+              <div className="text-text-primary font-mono">
+                {weather.visibilitySm >= 10 ? "10+" : weather.visibilitySm} SM
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-text-muted uppercase">Ceiling</div>
+              <div className="text-text-primary font-mono">
+                {weather.ceilingFt != null ? `${weather.ceilingFt.toLocaleString()} ft` : "Clear"}
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] text-text-muted uppercase">Temp</div>
+              <div className="text-text-primary font-mono">
+                {weather.tempC != null ? `${weather.tempC}°C / ${Math.round(weather.tempC * 9 / 5 + 32)}°F` : "—"}
+              </div>
+            </div>
+          </div>
+          <div className="mt-2 text-[10px] text-text-muted font-mono truncate" title={weather.rawMetar}>
+            {weather.rawMetar}
+          </div>
+        </div>
+      )}
 
       {/* Time Breakdown */}
       <div className="bg-bg-card border border-border rounded-xl p-5">
@@ -204,7 +296,7 @@ export default function ResultPanel({
         </div>
       </div>
 
-      {/* Sources */}
+      {/* Sources & Data Refresh */}
       <div className="border-t border-border pt-4">
         <div className="text-[10px] font-semibold tracking-[0.15em] text-text-muted uppercase mb-2">
           Sources & Data Refresh
@@ -227,6 +319,37 @@ export default function ResultPanel({
             </span>
           ))}
         </div>
+
+        {/* Source Health Indicators */}
+        {sourceStatuses.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {sourceStatuses.map((src) => {
+              const statusColor =
+                src.status === "ok"
+                  ? "bg-accent-green/20 text-accent-green"
+                  : src.status === "error" || src.status === "timeout"
+                    ? "bg-accent-red/20 text-accent-red"
+                    : "bg-text-muted/20 text-text-muted";
+              const statusDot =
+                src.status === "ok" ? "●" : src.status === "no_data" ? "○" : "✕";
+              return (
+                <span
+                  key={src.name}
+                  className={`${statusColor} text-[10px] px-2 py-0.5 rounded font-mono`}
+                  title={src.lastError ?? `Age: ${src.ageSeconds ?? "?"}s`}
+                >
+                  {statusDot} {src.name}
+                  {src.status === "ok" && src.ageSeconds != null && (
+                    <span className="opacity-60 ml-1">
+                      {src.ageSeconds < 60 ? `${src.ageSeconds}s` : `${Math.round(src.ageSeconds / 60)}m`}
+                    </span>
+                  )}
+                </span>
+              );
+            })}
+          </div>
+        )}
+
         <div className="mt-2 text-xs">
           {isLiveData ? (
             <span className="bg-accent-green/20 text-accent-green px-2 py-1 rounded text-[11px]">
