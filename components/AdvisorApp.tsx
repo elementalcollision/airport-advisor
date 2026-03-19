@@ -61,6 +61,13 @@ export default function AdvisorApp() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
+  // Register service worker for PWA
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
+
   // Reset credential when switching airports
   const handleAirportChange = (code: AirportCode) => {
     setInputs((prev) => ({

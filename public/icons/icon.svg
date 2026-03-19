@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0f1419"/>
+  <rect x="24" y="24" width="464" height="464" rx="80" fill="#1a2028"/>
+  <!-- Plane icon -->
+  <g transform="translate(256,220) rotate(-30)">
+    <path d="M-8,-100 L8,-100 L12,-20 L80,30 L80,50 L12,20 L8,80 L30,100 L30,115 L0,100 L-30,115 L-30,100 L-8,80 L-12,20 L-80,50 L-80,30 L-12,-20 Z" fill="#e8750a"/>
+  </g>
+  <!-- Clock arc -->
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#e8750a" stroke-width="6" stroke-dasharray="200 805" stroke-linecap="round" transform="rotate(-90 256 256)" opacity="0.3"/>
+  <!-- Text -->
+  <text x="256" y="420" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="56" fill="#e8750a" letter-spacing="8">BOS</text>
+  <text x="256" y="460" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="32" fill="#71767b" letter-spacing="4">DUB</text>
+</svg>
