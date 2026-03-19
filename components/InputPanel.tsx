@@ -101,7 +101,7 @@ export default function InputPanel({
             type="number"
             min={0}
             max={23}
-            value={departureHour}
+            value={String(departureHour).padStart(2, "0")}
             onChange={(e) => onHourChange(Math.min(23, Math.max(0, parseInt(e.target.value) || 0)))}
             className="w-16 bg-bg-input border border-border rounded-lg px-3 py-2.5 text-text-primary text-sm text-center"
           />
@@ -111,13 +111,13 @@ export default function InputPanel({
             min={0}
             max={59}
             step={5}
-            value={departureMinute}
+            value={String(departureMinute).padStart(2, "0")}
             onChange={(e) => onMinuteChange(Math.min(59, Math.max(0, parseInt(e.target.value) || 0)))}
             className="w-16 bg-bg-input border border-border rounded-lg px-3 py-2.5 text-text-primary text-sm text-center"
           />
         </div>
         <div className="text-accent-green text-xs mt-1.5">
-          → {formatTime(departureHour)} departure
+          → {formatTime(departureHour)} departure ({String(departureHour).padStart(2, "0")}:{String(departureMinute).padStart(2, "0")})
         </div>
       </div>
 
